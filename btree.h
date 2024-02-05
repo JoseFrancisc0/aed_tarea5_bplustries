@@ -16,13 +16,55 @@ class BTree{
             bool leaf;
 
             Node(): father(this), leaf(true){};
+
+            Node* suitable_children(T key, Node* current = this){
+                if(current->leaf == true)
+                    return current;
+                
+                int i = 0;
+                for(T k : keys)
+                    if(k < key)
+                        i++;
+                    else
+                        break;
+                    
+                suitable_children(key, current->children[i]);
+            }
+
+            Node* split(Node* current = this){
+                int middle_i = current->keys.size() / 2;
+                T middle = current->keys[i];
+
+                // Si no es root
+                Node* f = current->father;
+                f->insert_key(middle);
+
+                // TODO
+            }
+
+            void insert_key(T data){
+                int i = 0;
+                for(T k : keys)
+                    if(k < key)
+                        i++;
+                    else
+                        break;
+                
+                keys.insert(keys.begin() + i, data);
+
+                if(keys.size() > order)
+                    split(this);
+            }
         };
 
         Node* root;
         int order;
 
-        void insert(T data, Node* current);
-        
+        void insert(T data, Node* current){
+            current = current->suitable_children(data);
+            current->insert_key(data);
+        }
+
         void erase(T key, Node* current);
 
         bool find(T key, Node* current){
