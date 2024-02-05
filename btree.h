@@ -55,6 +55,49 @@ class BTree{
                 if(keys.size() > order)
                     split(this);
             }
+
+            Node* find_key(T key, Node* current = this){
+                int i = 0;
+                for(T k : current->keys)
+                    if(k == key)
+                        return current;
+                    else if(k < key)
+                        i++;
+                    else
+                        break;
+                
+                find_key(key, current->children[i]);
+                return nullptr;
+            }
+
+            T sucessor(T key, Node* current = this){
+                int i = 0;
+                for(T k : current->keys)
+                    if(k < key)
+                        i++;
+                    else
+                        break;
+                
+                current = current->children[i+1];
+                if(current->leaf == true)
+                    return current->keys[0];
+                else
+                    return sucessor(key, current);
+            }
+
+            void erase_key(T key){
+                int i = 0;
+                for(T k : keys)
+                    if(k == keys)
+                        break;
+                    else if(k < keys)
+                        i++
+                    else{
+                        // ERROR
+                    }
+                
+                keys.erase(keys.begin() + i);
+            }
         };
 
         Node* root;
@@ -65,7 +108,18 @@ class BTree{
             current->insert_key(data);
         }
 
-        void erase(T key, Node* current);
+        void erase(T key, Node* current){
+            current = current->find_key(key);
+
+            if(current->leaf == true)
+                current->erase_key(key);
+            else{
+                // TODO: REPLACE SUCCESOR
+                // TODO: CASE 1
+                // TODO: CASE 2
+            }
+                
+        }
 
         bool find(T key, Node* current){
             int i = 0;
