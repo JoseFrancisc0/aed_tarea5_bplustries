@@ -1,6 +1,8 @@
 #ifndef B_TREE_H
 #define B_TREE_H
 
+#include <algorithm>
+#include <iostream>
 #include <vector>
 using namespace std;
 
@@ -17,13 +19,27 @@ class BTree{
         };
 
         Node* root;
+        int order;
 
         void insert(T data, Node* current);
+        
         void erase(T key, Node* current);
-        bool find(T key, Node* current);
+
+        bool find(T key, Node* current){
+            int i = 0;
+            for(auto k : current->keys)
+                if(k == key)
+                    return true;
+                else if(k < key)
+                    i++;
+                else
+                    break;
+            
+            find(key, current->children[i]);
+        }
 
     public:
-        BTree(): root(nullptr){};
+        BTree(int M): root(nullptr), order(M){};
 
         void insert(T data){
             insert(data, root);
