@@ -11,10 +11,22 @@ class Trie{
             list<pair<char, Node*>> children;
             bool endWord;
 
-            Node(): endWord(false){}; // Implement constructor
+            Node(): endWord(false){};
         };
-        
+
         Node* root;
+
+        void clear(Node* node){
+            if(node == nullptr)
+                return;
+            
+            for(auto child : node->children){
+                clear(child.second);
+                delete child.second;
+            }
+
+            node->children.clear();
+        }
 
     public:
         Trie(): root(nullptr){};
@@ -22,7 +34,12 @@ class Trie{
         void insert(string s);
         void erase(string s);
         bool search(string s);
-        void clear();
+
+        void clear(){
+            clear(root);
+            delete root;
+            root = nullptr;
+        }
 
         ~Trie(){
             clear();
