@@ -270,7 +270,28 @@ class BTree{
         }
 
         void insert(int k){
-            // TODO
+            if(root == nullptr){
+                root = new BTreeNode(t, true);
+                root->keys[0] = k;
+                root->n = 1;
+            }
+            else{
+                if(root->n == 2*t - 1){
+                    BTreeNode* nodo = new BTreeNode(t, false);
+                    nodo->C[0] = root;
+                    nodo->splitChild(0, root);
+
+                    int i = 0;
+                    if(nodo->keys[0] < k)
+                        i++;    
+                    nodo->C[i]->insertNonFull(k);
+
+                    root = nodo;
+                }
+                else
+                    root->insertNonFull(k);
+            }
+
         }
 
         void remove(int k){
