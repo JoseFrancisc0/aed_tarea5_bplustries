@@ -23,16 +23,17 @@ class BPlus_Tree{
             }
 
             void split_child(int i, Node* y){
-                // TODO: Checkear si nodo a splittear es hoja
-                // Si es hoja, guardar la key mediana en la hoja izquierda
-                // hojaIzquierda->nextLeaf = hojaDerecha
-                // ESTE ES CODE DEL BTREE
                 Node* z = new Node(order, y->leaf);
                 z->n = order - 1;
                 for (int j = 0; j < order - 1; j++)
                     z->keys[j] = y->keys[j + order];
 
-                if (y->leaf == false){
+                if(y->leaf){
+                    keys[i] = y->keys[y->order - 1];
+                    z->nextLeaf = y->nextLeaf;
+                    y->nextLeaf = z;
+                }
+                else{
                     for (int j = 0; j < order; j++)
                         z->C[j] = y->C[j + order];
                 }
