@@ -1,201 +1,280 @@
 #ifndef B_TREE_H
 #define B_TREE_H
 
-#include <iostream>
-#include <vector>
+#include<iostream>
 using namespace std;
 
-template<typename T>
-class BTree{
+// A BTree node
+class BTreeNode{
     private:
-        struct Node{
-            bool leaf;
-            vector<T> keys;
-            vector<Node*> children;
-
-            Node(bool l): leaf(l){};
-
-            ~Node() = default;
-        };
-
-        Node* root;
-        int order;
-
-        void split_child(Node* parent, int child_index){
-            Node* child = parent->children[child_index];
-            Node* new_child = new Node(child->leaf);
-
-            // Subir la key mediana
-            T mediana = child->keys[order/2];
-            parent->keys.insert(parent->keys.begin() + child_index, mediana);
-
-            // Mover keys a nuevo hijo
-            new_child->keys.assign(child->keys.begin() + (order/2)+1, child->keys.end());
-            child->keys.resize(order/2);
-
-            if(!child->leaf){   // Mover hijos al nuevo
-                new_child->children.assign(child->children.begin() + (order/2)+1, child->children.end());
-                child->children.resize(order/2 + 1);
-            }
-
-            parent->children.insert(parent->children.begin() + child_index + 1, new_child);
-        }
-
-        void insert_non_full(Node* node, T key){
-            int i = node->keys.size() - 1;
-
-            if(node->leaf){ // Insercion en hoja
-                node->keys.push_back(T());
-                while(i >= 0 && key < node->keys[i]){
-                    node.keys[i+1] = node->keys[i];
-                    i--;
-                }
-                node->keys[i+1] = key;
-            }
-            else{   // Buscar el hijo correcto
-                while(i >= 0 && key < node->keys[i])
-                    i--;
-                i++;
-
-                if(node->children[i]->keys.size() == order - 1){ // Hijo lleno
-                    split_child(node, i);
-                    if(key > node->keys[i])
-                        i++;
-                }
-
-                insert_non_full(node->children[i], key); // insert en hijo
-            }
-        }
-
-        T predecessor(Node* node, int index){
-            Node* current = node->children[i];
-            while(!current->leaf)
-                current = current->children[current->keys.size()];
-            
-            return current->keys[current->keys.size() - 1];
-        }
-
-        void merge_child(Node* parent, int child_index){
-            Node* child = parent->children[child_index];
-            Node* sibling = parent->children[child_index + 1];
-
-            // Movemos llaves de padre a hijo
-            child->keys.push_back(parent->keys[child_index]);
-
-            // Movemos llaves de hermano a hijo
-            child->keys.insert(child->keys.end(), sibling->keys.begin(), sibling->keys.end());
-
-            // Movemos hijos de hermano a hijo
-            if(!sibling->leaf)
-                child->children.insert(child->keys.end(), sibling->keys.begin(), sibling->keys.end());
-            
-            // Eliminamos key de padre y ajustamos hijos
-            parent->keys.erase(parent->keys.begin() + child_index);
-            parent->children.erase(parent->children.begin() + child_index + 1);
-        
-            delete sibling;
-        }
-
-        void erase(Node* node, T key){
-            int i = 0;
-            while(i < node->keys.size() && key > node->keys[i])
-                ++i;
-
-            if(i < node->keys.size() && key == node->keys[i]){ // Key found in node
-                if(node->leaf) // Caso 0: erase en hoja
-                    node->keys.erase(node->keys.begin() + i);
-                else{ // Caso 1: erase en nodo interior
-                    T pred = predecessor(node, i);
-                    node.keys[i] = pred;
-                    erase(node->children[i], pred);
-                }
-            }
-            else{ // Key not found in node
-                if(node->leaf)  // No esta en tree
-                    return;
-                
-                if(node->children[i]->keys.size() >= (order+1)/2)   // Caso 2: borrow de hermano
-                    erase(node->children[i], key);
-                else if(i != node->keys.size() && node->children[i+1]->keys.size() >= (order+1)/2) // Caso 2
-                    erase(node->children[i+1], key);
-                else{   // Caso 3: toca merge
-                    merge_child(node, i);
-                    erase(node->children[i], key);
-                }
-            }
-        }
-
-        bool search(Node* current, T key){
-            if(current == nullptr)
-                return false;
-            
-            // Llegar hasta el indice de la llave
-            int i = 0;
-            while(i < current->keys.size() && key > current->keys[i])
-                ++i;
-
-            if(i < current->keys.size() && key == current->keys[i])
-                return true; // Key found
-            if(current->leaf)
-                return false; // Llego a una hoja y no encontro --> no esta
-            
-            return search(current->children[i], key);
-        }
-
-        void clear(Node* current){
-            if(current == nullptr)
-                return;
-            
-            for(Node* child : current->children)
-                clear(child);
-            
-            delete node;
-        }
+        int *keys;
+        int t;	 // Minimum degree (defines the range for number of keys)
+        BTreeNode **C;
+        int n;	 // Current number of keys
+        bool leaf;
 
     public:
-        BTree(int M): root(nullptr), order(M){};
+        BTreeNode(int _t, bool _leaf): t(_t), leaf(_leaf){
+            keys = new int[2*t - 1];
+            C = new BTreeNode *[2*t];
+            n = 0;
+        }
 
-        void insert(T key){
-            if(root == nullptr){ // Creando root                    
-                root = new Node(true);
-                root->keys.push_back(key);
-                return;
+        // Traverse the node
+        void traverse(){
+            int i;
+            for (i = 0; i < n; i++){
+                if (leaf == false)
+                    C[i]->traverse();
+                cout << " " << keys[i];
             }
 
-            if(root->keys.size() == order - 1){ // Root lleno -> split
-                Node* new_root = new Node(false);
-                new_root->children.push_back(root);
-                split_child(new_root, 0);
-                root = new_root;
+            if (leaf == false)
+                C[i]->traverse();
+        }
+
+        // Search k in Node
+        BTreeNode* search(int k){
+            int i = 0;
+            while (i < n && k > keys[i])
+                i++;
+
+            if (keys[i] == k)
+                return this;
+            if (leaf == true)
+                return NULL;
+
+            return C[i]->search(k);        
+        }
+
+        // Find the approximate key of k in node
+        int findKey(int k){
+            int idx = 0;
+            while (idx < n && keys[idx] < k)
+                ++idx;
+            return idx;        
+        }
+
+        // Insert k in non full node
+        void insertNonFull(int k){
+            int i = n - 1;
+
+            if (leaf == true){
+                while (i >= 0 && keys[i] > k){
+                    keys[i + 1] = keys[i];
+                    i--;
+                }
+                keys[i + 1] = k;
+                n = n + 1;
+            }
+            else{
+                while (i >= 0 && keys[i] > k)
+                    i--;
+
+                if (C[i + 1]->n == 2*t - 1){
+                    splitChild(i + 1, C[i + 1]);
+                    if (keys[i + 1] < k)
+                        i++;
+                }
+                C[i + 1]->insertNonFull(k);
+            }        
+        }
+
+        // Splits child C[i] of node y
+        void splitChild(int i, BTreeNode *y){
+            BTreeNode *z = new BTreeNode(y->t, y->leaf);
+            z->n = t - 1;
+            for (int j = 0; j < t - 1; j++)
+                z->keys[j] = y->keys[j + t];
+
+            if (y->leaf == false){
+                for (int j = 0; j < t; j++)
+                    z->C[j] = y->C[j + t];
             }
 
-            insert_non_full(root, key);
+            y->n = t - 1;
+            for (int j = n; j >= i + 1; j--)
+                C[j + 1] = C[j];
+            C[i + 1] = z;
+
+            for (int j = n - 1; j >= i; j--)
+                keys[j + 1] = keys[j];
+
+            keys[i] = y->keys[t - 1];
+            n = n + 1;        
         }
 
-        void erase(T key){
-            if(root == nullptr)
-                return;
-            
-            erase(root, key);
+        // Wrapper of remove operations for k
+        void remove(int k){
+            //TODO
+        }
 
-            if(root->keys.empty() && root->leaf){ // Si root.empty(), actualizarlo
-                Node* new_root = root->children[0];
-                delete root;
-                root = new_root;
+        // Remove key[idx] from leaf
+        void removeFromLeaf(int idx){
+            for (int i = idx + 1; i < n; ++i)
+                keys[i - 1] = keys[i];
+
+            n--;
+            return;        
+        }
+
+        // Remove key[idx] from non leaf
+        void removeFromNonLeaf(int idx){
+            int k = keys[idx];
+
+            if (C[idx]->n >= t){
+                int pred = getPred(idx);
+                keys[idx] = pred;
+                C[idx]->remove(pred);
             }
+            else if (C[idx + 1]->n >= t){
+                int succ = getSucc(idx);
+                keys[idx] = succ;
+                C[idx+1]->remove(succ);
+            }
+            else{
+                merge(idx);
+                C[idx]->remove(k);
+            }
+
+            return;        
         }
 
-        bool search(T key){
-            return search(root, key);
+        // Gets predecesor of key[idx]
+        int getPred(int idx){
+            BTreeNode *cur = C[idx];
+            while (!cur->leaf)
+                cur = cur->C[cur->n];
+
+            return cur->keys[cur->n - 1];        
         }
 
-        void clear(){
-            clear(root);
-            root = nullptr;
+        // Gets succesor of key[idx]
+        int getSucc(int idx){
+            BTreeNode *cur = C[idx + 1];
+            while (!cur->leaf)
+                cur = cur->C[0];
+
+            return cur->keys[0];
         }
 
-        ~BTree(){
-            clear();
+        // Fill the child C[idx]
+        void fill(int idx){
+            if (idx != 0 && C[idx - 1]->n >= t)
+                borrowFromPrev(idx);
+            else if (idx != n && C[idx + 1]->n >= t)
+                borrowFromNext(idx);
+            else
+                if (idx != n)
+                    merge(idx);
+                else
+                    merge(idx - 1);
+
+            return;        
+        }
+
+        // Borrow a key from the previous sibling of the child in C[idx]
+        void borrowFromPrev(int idx){
+            BTreeNode *child = C[idx];
+            BTreeNode *sibling = C[idx-1];
+
+            for (int i = child->n - 1; i >= 0; --i)
+                child->keys[i + 1] = child->keys[i];
+
+            if (!child->leaf){
+                for(int i = child->n; i >= 0; --i)
+                    child->C[i + 1] = child->C[i];
+            }
+
+            child->keys[0] = keys[idx - 1];
+            if(!child->leaf)
+                child->C[0] = sibling->C[sibling->n];
+
+            keys[idx - 1] = sibling->keys[sibling->n - 1];
+            child->n += 1;
+            sibling->n -= 1;
+
+            return;
+        }
+
+        // Borrow a key from the next sibling of the child in C[idx]
+        void borrowFromNext(int idx){
+            BTreeNode *child = C[idx];
+            BTreeNode *sibling = C[idx - 1];
+
+            for (int i = child->n - 1; i >= 0; --i)
+                child->keys[i + 1] = child->keys[i];
+
+            if (!child->leaf){
+                for(int i = child->n; i >= 0; --i)
+                    child->C[i + 1] = child->C[i];
+            }
+
+            child->keys[0] = keys[idx - 1];
+            if(!child->leaf)
+                child->C[0] = sibling->C[sibling->n];
+
+            keys[idx - 1] = sibling->keys[sibling->n - 1];
+            child->n += 1;
+            sibling->n -= 1;
+
+            return;        
+        }
+
+        // Merge child in C[idx] with its next sibling
+        void merge(int idx){
+            BTreeNode *child = C[idx];
+            BTreeNode *sibling = C[idx + 1];
+
+            child->keys[t - 1] = keys[idx];
+            for (int i = 0; i < sibling->n; ++i)
+                child->keys[i + t] = sibling->keys[i];
+
+            if (!child->leaf)
+                for(int i = 0; i <= sibling->n; ++i)
+                    child->C[i + t] = sibling->C[i];
+
+            for (int i = idx + 1; i < n; ++i)
+                keys[i - 1] = keys[i];
+
+            for (int i = idx + 2; i <= n; ++i)
+                C[i - 1] = C[i];
+
+            child->n += sibling->n + 1;
+            n--;
+
+            delete(sibling);
+            return;        
+        }
+
+        friend class BTree;
+};
+
+class BTree{
+    private:
+        BTreeNode *root;
+        int t; // Minimum degree
+
+    public:
+        BTree(int _t): t(_t){
+            root = NULL;
+        }
+
+        void traverse(){
+            if (root != NULL) 
+                root->traverse();
+        }
+
+        BTreeNode* search(int k){
+            return (root == NULL)? NULL : root->search(k);
+        }
+
+        void insert(int k){
+            // TODO
+        }
+
+        void remove(int k){
+            // TODO
         }
 };
 
