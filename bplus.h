@@ -73,6 +73,8 @@ class BPlus_Tree{
                 }  
             }
 
+            void remove(int k);
+
             Node* search(int k){
                 int i = 0;
                 while(i < n && k > keys[i])
@@ -118,7 +120,18 @@ class BPlus_Tree{
             }
         }
 
-        void remove(int k);
+        void remove(int k){
+            if(root == nullptr)
+                return;
+            
+            root->remove(k);
+        
+            if(root->n == 0 && !root->leaf){
+                Node* temp = root;
+                root = root->C[0];
+                delete temp;
+            }
+        }
 
         bool search(int k){
             if(root == nullptr)
