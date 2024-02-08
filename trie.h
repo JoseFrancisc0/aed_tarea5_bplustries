@@ -31,7 +31,30 @@ class Trie{
     public:
         Trie(): root(nullptr){};
 
-        void insert(string s);
+        void insert(string s){
+            if(root == nullptr)
+                root = new Node();
+            
+            Node* current = root;
+            for(char c : s){
+                bool found = false;
+                for(auto child : current->children){
+                    if(child.first == c){
+                        current = child.second;
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found){
+                    Node* new_node = new Node();
+                    current->children.push_back(make_pair(c, new_node));
+                    current = new_node;
+                }
+            }
+
+            current->endWord = true;
+        }
+
         void erase(string s);
 
         bool search(string s){
