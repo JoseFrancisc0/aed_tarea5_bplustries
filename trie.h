@@ -58,39 +58,39 @@ class Trie{
         void erase(string s){
             if(root == nullptr)
                 return;
-            
+
+            list<Node*> path;
             Node* current = root;
-            list<pair<char, Node*>>::iterator prevChild;
-            bool foundLastNode = true;
 
             for(char c : s){
-                foundLastNode = false;
                 bool found = false;
-                prevChild = current->children.end();
-                for(auto it = current->children.begin(); it != current->children.end(); ++it){
-                    if(it->first == c){
-                        current = it->second;
-                        prevChild = it;
+                for(auto& child: current->children)
+                    if(child.first == c){
+                        current = child.second;
+                        path.push_back(current);
                         found = true;
                         break;
                     }
-                }
                 if(!found)
                     return;
             }
 
-            if(!current->endWord)
-                return;
-            
             current->endWord = false;
 
-            list<pair<char, Node*>>::iterator childToDelete;
-            while(!current->endWord && current->children.empty() && current != root){
-                childToDelete = prevChild;
-                prevChild--;
-                delete childToDelete->second;
-                current->children.erase(childToDelete);
-                current = root;
+            while(!path.empty()){
+                current = path.back();
+                path.pop_back();
+
+                if(!current->children.empty() || current->endWord)
+                    break;
+                
+                for(auto it = path.back()->children.begin(); it != path.back()->children.end(); ++it)
+                    if(it->second == current){
+                        path.back()->children.erase(it);
+                        break;
+                    }
+                
+                delete current;
             }
         }
 
