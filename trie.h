@@ -33,7 +33,24 @@ class Trie{
 
         void insert(string s);
         void erase(string s);
-        bool search(string s);
+
+        bool search(string s){
+            Node* current = root;
+            for(char c : s){
+                bool found = false;
+                for(auto child : current->children){
+                    if(child.first == c){
+                        current = child.second;
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found)
+                    return false;
+            }
+
+            return current != nullptr && current->endWord;
+        }
 
         void clear(){
             clear(root);
