@@ -74,7 +74,165 @@ class BPlus_Tree{
                 }  
             }
 
-            void remove(int k);
+            int find_key(int k){
+                int idx = 0;
+                while (idx < n && keys[idx] < k)
+                    ++idx;
+                return idx;  
+            }
+
+            int get_pred(int idx){
+                Node* cur = C[idx];
+                while (!cur->leaf)
+                    cur = cur->C[cur->n];
+
+                return cur->keys[cur->n - 1];        
+            }
+
+            int get_succ(int idx){
+                Node* cur = C[idx + 1];
+                while (!cur->leaf)
+                    cur = cur->C[0];
+
+                return cur->keys[0];
+            }
+            
+            void borrow_from_prev(int idx){
+                Node* child = C[idx];
+                Node* sibling = C[idx-1];
+
+                for (int i = child->n - 1; i >= 0; --i)
+                    child->keys[i + 1] = child->keys[i];
+
+                if (!child->leaf){
+                    for(int i = child->n; i >= 0; --i)
+                        child->C[i + 1] = child->C[i];
+                }
+
+                child->keys[0] = keys[idx - 1];
+                if(!child->leaf)
+                    child->C[0] = sibling->C[sibling->n];
+
+                keys[idx - 1] = sibling->keys[sibling->n - 1];
+                child->n += 1;
+                sibling->n -= 1;
+
+                return;
+            }
+
+            void borrow_from_next(int idx){
+                Node* child = C[idx];
+                Node* sibling = C[idx - 1];
+
+                for (int i = child->n - 1; i >= 0; --i)
+                    child->keys[i + 1] = child->keys[i];
+
+                if (!child->leaf){
+                    for(int i = child->n; i >= 0; --i)
+                        child->C[i + 1] = child->C[i];
+                }
+
+                child->keys[0] = keys[idx - 1];
+                if(!child->leaf)
+                    child->C[0] = sibling->C[sibling->n];
+
+                keys[idx - 1] = sibling->keys[sibling->n - 1];
+                child->n += 1;
+                sibling->n -= 1;
+
+                return;        
+            }
+
+            void merge(int idx){
+                Node* child = C[idx];
+                Node* sibling = C[idx + 1];
+
+                child->keys[order - 1] = keys[idx];
+                for (int i = 0; i < sibling->n; ++i)
+                    child->keys[i + order] = sibling->keys[i];
+
+                if (!child->leaf)
+                    for(int i = 0; i <= sibling->n; ++i)
+                        child->C[i + order] = sibling->C[i];
+
+                for (int i = idx + 1; i < n; ++i)
+                    keys[i - 1] = keys[i];
+
+                for (int i = idx + 2; i <= n; ++i)
+                    C[i - 1] = C[i];
+
+                child->n += sibling->n + 1;
+                n--;
+
+                delete(sibling);
+                return; 
+            }
+
+            void fill(int idx){
+                if (idx != 0 && C[idx - 1]->n >= order)
+                    borrow_from_prev(idx);
+                else if (idx != n && C[idx + 1]->n >= order)
+                    borrow_from_next(idx);
+                else
+                    if (idx != n)
+                        merge(idx);
+                    else
+                        merge(idx - 1);
+
+                return;        
+            }
+
+            void remove_from_leaf(int idx){
+                for (int i = idx + 1; i < n; ++i)
+                    keys[i - 1] = keys[i];
+
+                n--;
+                return;     
+            }
+
+            void remove_from_non_leaf(int idx){
+                int k = keys[idx];
+
+                if (C[idx]->n >= order){
+                    int pred = get_pred(idx);
+                    keys[idx] = pred;
+                    C[idx]->remove(pred);
+                }
+                else if (C[idx + 1]->n >= order){
+                    int succ = get_succ(idx);
+                    keys[idx] = succ;
+                    C[idx+1]->remove(succ);
+                }
+                else{
+                    merge(idx);
+                    C[idx]->remove(k);
+                }
+
+                return;                 
+            }
+
+            // TODO: Acomodar para B+ Tree, borrado siempre en hoja (en nodo interno si aparece ahi)
+            void remove(int k){
+                int idx = find_key(k);
+
+                if(idx < n && keys[idx] == k)
+                    if(leaf)
+                        remove_from_leaf(k);  // Caso 0: borrado en hoja
+                    else
+                        remove_from_non_leaf(k); // Caso 1: borrado en nodo interno
+                else{
+                    if(leaf)
+                        return;
+                    
+                    if(C[idx]->n < order)
+                        fill(idx);  // Caso 3/4: nodo no puede borrar
+
+                    if(idx == n)
+                        C[idx - 1]->remove(k);
+                    else
+                        C[idx]->remove(k);
+                }
+            }
 
             Node* search(int k){
                 int i = 0;
