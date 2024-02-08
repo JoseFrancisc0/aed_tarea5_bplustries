@@ -55,7 +55,44 @@ class Trie{
             current->endWord = true;
         }
 
-        void erase(string s);
+        void erase(string s){
+            if(root == nullptr)
+                return;
+            
+            Node* current = root;
+            list<pair<char, Node*>>::iterator prevChild;
+            bool foundLastNode = true;
+
+            for(char c : s){
+                foundLastNode = false;
+                bool found = false;
+                prevChild = current->children.end();
+                for(auto it = current->children.begin(); it != current->children.end(); ++it){
+                    if(it->first == c){
+                        current = it->second;
+                        prevChild = it;
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found)
+                    return;
+            }
+
+            if(!current->endWord)
+                return;
+            
+            current->endWord = false;
+
+            list<pair<char, Node*>>::iterator childToDelete;
+            while(!current->endWord && current->children.empty() && current != root){
+                childToDelete = prevChild;
+                prevChild--;
+                delete childToDelete->second;
+                current->children.erase(childToDelete);
+                current = root;
+            }
+        }
 
         bool search(string s){
             Node* current = root;
