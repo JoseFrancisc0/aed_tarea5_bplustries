@@ -106,7 +106,25 @@ class BTreeNode{
 
         // Wrapper of remove operations for k
         void remove(int k){
-            //TODO
+            int idx = findKey(k);
+
+            if(idx < n && keys[idx] == k)
+                if(leaf)
+                    removeFromLeaf(k);  // Caso 0: borrado en hoja
+                else
+                    removeFromNonLeaf(k); // Caso 1: borrado en nodo interno
+            else{
+                if(leaf)
+                    return;
+                
+                if(C[idx]->n < t)
+                    fill(idx);  // Caso 3/4: nodo no puede borrar
+
+                if(idx == n)
+                    C[idx - 1]->remove(k);
+                else
+                    C[idx]->remove(k);
+            }
         }
 
         // Remove key[idx] from leaf
@@ -270,7 +288,7 @@ class BTree{
         }
 
         void insert(int k){
-            if(root == nullptr){
+            if(root == NULL){
                 root = new BTreeNode(t, true);
                 root->keys[0] = k;
                 root->n = 1;
@@ -295,7 +313,16 @@ class BTree{
         }
 
         void remove(int k){
-            // TODO
+            if(root == NULL)
+                return;
+            
+            root->remove(k);
+
+            if(root->n == 0 && !root->leaf){
+                BTreeNode* temp = root;
+                root = root->C[0];
+                delete temp;
+            }
         }
 };
 
