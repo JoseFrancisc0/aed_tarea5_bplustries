@@ -8,8 +8,7 @@ class BPlus_Tree{
             int n;  // #keys in node
             int order;
             Node** C; // children of node
-            Node* nextLeaf;
-            Node* prevLeaf;
+            Node* nextLeaf = nullptr; // link leafs
             bool leaf;
 
             Node(bool l, int t): leaf(l), order(t){
@@ -21,6 +20,19 @@ class BPlus_Tree{
             ~Node(){
                 delete[] keys;
                 delete[] C;
+            }
+
+            Node* search(int k){
+                int i = 0;
+                while(i < n && k > keys[i])
+                    i++;
+                
+                if(i < n && keys[i] == k)
+                    return this;
+                if(leaf)
+                    return nullptr;
+                
+                return C[i]->search(k);
             }
 
         };
@@ -35,7 +47,12 @@ class BPlus_Tree{
 
         void remove(int k);
 
-        bool search(int k);
+        bool search(int k){
+            if(root == nullptr)
+                return false;
+            
+            return root->search(k) == nullptr ? false : true; 
+        }
 };
 
 #endif //B_PLUS_TREE
