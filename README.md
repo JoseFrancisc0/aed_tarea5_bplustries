@@ -1,4 +1,4 @@
-# aed_tarea5_btrees
+# aed_tarea5_b+tries
 
 ## Integrantes
 - Wong Orrillo, Jose Francisco
