@@ -1,6 +1,9 @@
 #ifndef B_PLUS_TREE
 #define B_PLUS_TREE
 
+#include <iostream>
+using namespace std;
+
 class BPlus_Tree{
     private:
         struct Node{
@@ -297,6 +300,24 @@ class BPlus_Tree{
                 return false;
             
             return root->search(k) == nullptr ? false : true; 
+        }
+
+        void traverse(){
+            if(root == nullptr)
+                return;
+            
+            Node* current = root;
+
+            while(current != nullptr)
+                current = current->C[0];
+            
+            // Llegamos al hijo izquierdo mas profundo
+
+            while(current != nullptr){
+                for(int i = 0; i < 2*order - 1; i++)
+                    cout << current->keys[i] << " ";
+                current = current->nextLeaf;
+            }
         }
 };
 
