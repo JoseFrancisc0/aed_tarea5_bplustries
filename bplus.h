@@ -307,14 +307,12 @@ class BPlus_Tree{
                 return;
             
             Node* current = root;
-
-            while(current != nullptr)
+            while(!current->leaf)
                 current = current->C[0];
             
             // Llegamos al hijo izquierdo mas profundo
-
             while(current != nullptr){
-                for(int i = 0; i < 2*order - 1; i++)
+                for(int i = 0; i < current->n; i++)
                     cout << current->keys[i] << " ";
                 current = current->nextLeaf;
             }
