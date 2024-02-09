@@ -220,9 +220,9 @@ class BPlus_Tree{
 
                 if(idx < n && keys[idx] == k)
                     if(leaf)
-                        remove_from_leaf(k);  // Caso 0: borrado en hoja
+                        remove_from_leaf(idx);  // Caso 0: borrado en hoja
                     else
-                        remove_from_non_leaf(k); // Caso 1: borrado en nodo interno
+                        remove_from_non_leaf(idx); // Caso 1: borrado en nodo interno
                 else{
                     if(leaf)
                         return;
